@@ -21,7 +21,7 @@ To set up the files needed for FLARE perform either Step 1a or Step 1b
 Download and unzip the file
 here:
 
-`https://www.dropbox.com/s/k6sue0855lox7px/flare_testing_files.zip?dl=0`
+`https://www.dropbox.com/s/pqwgtmcoplx3zsa/flare_users_guide_files.zip?dl=0`
 
 ### Step 1b: Generating directories, downloading code, and downloading data manually
 
