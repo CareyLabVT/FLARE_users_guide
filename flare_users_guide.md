@@ -695,6 +695,8 @@ Finally there are some plotting configurations:
 You need to create a `/FLARE/Rscripts/[lake_name]` directory and move
 all the files in `/FLARE/Rscripts/fcre` to that directory.
 
+![](images/lake_specific_directory.png)
+
 You may need to modify the following files that you moved to
 `/FLARE/Rscripts/[lake_name]`, depending on how similar your data file
 formats are to the files used at fcre.
@@ -786,30 +788,48 @@ formats are to the files used at fcre.
 
 A guide to the variables in `configure_flare.R`
 
-**PENDING**
-
 ### General set-up
 
-  - `GLMversion`:
-  - `FLAREversion`:
-  - `use_null_model`:
-  - `include_wq`:
-  - `uncert_mode`:
-  - `single_run`:
-      - Removes uncertainty and only simulates 3 ensemble members
-  - `pull_from_git`:
-      - TRUE:
-      - FALSE
-  - `push_to_git`:
-      - TRUE
-      - FALSE
+  - `GLMversion`: string of GLM version
+  - `FLAREversion`: string of GLM version
+  - `use_null_model`: Use the persistance null model rather than GLM
+      - `TRUE`: use persistance null model
+      - `FALSE`: use GLM
+  - `include_wq`: Use AED
+      - `TRUE`: use GLM-AED
+      - `FALSE`: only use GLM
+  - `uncert_mode`: code for the type of uncertainty to include in
+    simulation
+      - 1 = all types
+      - 2 = no uncertainty
+      - 3 = only process uncertainty
+      - 4 = only NOAA weather forecast uncertainty
+      - 5 = only initial condition uncertainty
+      - 6 = only initial condition uncertainty and no state updating
+        with EnKF
+      - 7 = only parameter uncertainty
+      - 8 = only meteorology downscaling uncertainty
+      - 9 = no sources of uncertainty and no state updating with EnKF
+      - 11 = all sources of uncertainty and no state updating with EnKF
+  - `single_run`: Removes uncertainty and only simulates 3 ensemble
+    members
+      - `TRUE`:: only simulates 3 ensemble members without uncertainty
+      - `FALSE`: all ensemble members and uncertainty specified in
+        `uncert_mode`
+  - `pull_from_git`: Flag to pull data from GitHub
+      - `TRUE`: Pull
+      - `FALSE`: Don’t pull (needed if you are offline)
+  - `push_to_git`: Push results to GitHub
+      - `TRUE`: Push
+      - `FALSE`: Don’t Push (needed if you are offline)
 
 ### Lake specific variables
 
-  - `lake_name`:
+  - `lake_name`: four letter code name for lake. Match lake directy in
+    `FLARE/Rscripts` and in the NOAA GEF files
   - `lake_latitude`:Degrees North
   - `lake_longitude`:Degrees West
-  - `local_tzone`:
+  - `local_tzone`: In standard time. Must be recognized by R.
 
 ### Weather forcing options
 
@@ -817,25 +837,31 @@ A guide to the variables in `configure_flare.R`
       - `TRUE`: use NOAA forecast for “Future”
       - `FALSE` = use observed weather for “Future”; only works if
         “forecasting” past dates
-  - `DOWNSCALE_MET`:
-      - `TRUE`
-      - `FALSE`
-  - `noaa_location`:
+  - `DOWNSCALE_MET`: apply spatial and temporal downscaling
+      - `TRUE`: downscale
+      - `FALSE`: don’t downscale
+  - `noaa_location`: full path of directory with NOAA GEF files
       - paste0(data\_location, “/”,lake\_name,“/”)
-  - `downscaling_coeff`:
+  - `downscaling_coeff`: full path to the Rdata that has previously
+    estimated downscaling coefficients
       - paste0(data\_location,
         “/manual-data/debiased.coefficients.2018\_07\_12\_2019\_07\_11.RData”)
-  - `met_ds_obs_start`:
-      - as.Date(“2018-07-12”)
-  - `met_ds_obs_end`:
-      - as.Date(“2019-07-11”)
-  - `missing_met_data_threshold`:
+      - NA: no previous coefficient, calculate within simulation if
+        `DOWNSCALE_MET == TRUE`.
+  - `met_ds_obs_start`: Starting date to include in estimation of
+    downscaling coefficients
+      - date class (`as.Date("2019-07-11")`)
+  - `met_ds_obs_end`: Ending date to include in estimation of
+    downscaling coefficients
+      - date class (`as.Date("2019-07-11")`)
+  - `missing_met_data_threshold`: PENDING
 
 ### Inflow options
 
-  - `use_future_inflow`:
-      - `TRUE`:
-      - `FALSE`:
+  - `use_future_inflow`: Use forecast inflow vs. observed inflow (if
+    avialable)
+      - `TRUE`: Future inflow
+      - `FALSE`: Observed inflow
   - `future_inflow_flow_coeff`: Vector of three numbers
       - Intercept
       - Coefficient with laged flow rate
@@ -850,178 +876,252 @@ A guide to the variables in `configure_flare.R`
 
 ### GLM namelist files
 
-  - `base_GLM_nml`:
-      - paste0(forecast\_location,“/glm3\_woAED.nml” )
-  - `base_AED_nml`:
-  - `base_AED_phyto_pars_nml`:
-  - `base_AED_zoop_pars_nml`:
+  - `base_GLM_nml`: full path to the glm namelist
+      - example: paste0(forecast\_location,“/glm3\_woAED.nml” )
+  - `base_AED_nml`: full path to the aed namelist
+  - `base_AED_phyto_pars_nml`: full path to the phyto\_pars namelist
+  - `base_AED_zoop_pars_nml`: full path to the zoop\_pars namelist
 
 ### Depth information
 
-  - `modeled_depths`:
+  - `modeled_depths`: Vector of depths are represented in the EnKF
 
 ### Ensemble description
 
-  - `ensemble_size`:
-  - `n_ds_members`:
-  - `n_inflow_outflow_members`:
+  - `ensemble_size`: Total number of ensemble members
+  - `n_ds_members`: Number of random samples drawn from each NOAA GEF
+    ensemble member based on the variance-covariance matrix from
+    downscaling analysis.
+  - `n_inflow_outflow_members`: Number of random samples drawn from the
 
 ### Process uncertainty adaption
 
-  - `use_cov`:
-      - `TRUE`:
+  - `use_cov`: Allow for covariance of process uncertainty across depths
+      - `TRUE`: Include
+      - `FALSE`: Don’t include
   - `adapt_qt_method`:
       - 0 = no adapt,
       - 1 = variance in residuals
-  - `num_adapt_days`:
-  - `Inflat_pars`:
+  - `num_adapt_days`: Number of days included in generation of the
+    variance- covariance matrix of the residuals. The matrix represents
+    process uncertainties.
+  - `Inflat_pars`: The variance inflation factor applied to the
+    parameter component of the ensemble. Value greater than 1.
 
 ### Parameter calibration information
 
-  - `par_names`:
-  - `par_names_save`:
-  - `par_nml`:
-  - `par_init_mean`:
-  - `par_init_lowerbound`:
-  - `par_init_upperbound`:
-  - `par_lowerbound`:
-  - `par_upperbound`:
-  - `par_init_qt`:
-  - `par_units`:
+  - `par_names`: vector of GLM names of parameter values estimated
+  - `par_names_save`: vector of names of parameter values estimated
+    desired in output and plots
+  - `par_nml`: vector of nml file names that contains the parameter that
+    is being estimated
+  - `par_init_mean`: vector of initial mean value for parameters
+  - `par_init_lowerbound`: vector of lower bound for the initial uniform
+    distribution of the parameters
+  - `par_init_upperbound`: vector of upper bound for the initial uniform
+    distribution of the parameters
+  - `par_lowerbound`: vector of lower bounds that a parameter can have
+  - `par_upperbound`: vector of upper bounds that a parameter can have
+  - `par_init_qt`: Not used
+  - `par_units`: Units of parameter for plotting
 
 ### Observation information
 
-  - `ctd_fname`:
-  - `nutrients_fname`:
-  - `temp_obs_fname`:
-  - `variable_obsevation_depths`:
-  - `ctd_2_exo_chla`:
-  - `met_obs_fname`:
-  - `inflow_file1`:
-  - `outflow_file1`:
-  - `inflow_file2`:
-  - `temp_methods`:
-  - `do_methods`:
-  - `chla_methods`:
-  - `fdom_methods`:
-  - `nh4_methods`:
-  - `no3_methods`:
-  - `srp_methods`:
-  - `time_threshold_seconds_temp`:
-  - `time_threshold_seconds_oxygen`:
-  - `time_threshold_seconds_chla`:
-  - `time_threshold_seconds_fdom`:
-  - `time_threshold_seconds_nh4`:
-  - `time_threshold_seconds_no3`:
-  - `time_threshold_seconds_srp`:
-  - `distance_threshold_meter`:
+  - `ctd_fname`: full path of CTD file
+  - `nutrients_fname`: full path of nutrients file
+  - `temp_obs_fname`: vector of two full paths
+      - 1: path of the realtime file (required)
+      - 2: path of respository (QAQCed) file (if not used, must have
+        `NA`)
+  - `variable_obsevation_depths`: Use the depth measurment in the exo to
+    convert the depths of a fixed thermistor chain.
+      - `TRUE`: convert
+      - `FALSE`: don’t convert
+  - `ctd_2_exo_chla`: slope and intercept of linear regression that
+    converts chla values in the CTD to the exo
+  - `met_obs_fname`: vector of two full paths
+      - 1: path of the realtime file (required)
+      - 2: path of respository (QAQCed) file (if not used, must have
+        `NA`)
+  - `inflow_file1`: vector of two full paths
+      - 1: path of the realtime file (required)
+      - 2: path of respository (QAQCed) file (if not used, must have
+        `NA`)
+  - `outflow_file1`: Not current used
+  - `inflow_file2`: Not current used
+  - `temp_methods`: these are the names of the different measurement
+    methods as defined in the temp\_oxy\_chla\_qaqc.R and extract\_CTD.R
+    scripts
+      - current values for FCR: `thermistor`, `exo`, `do`, `ctd`
+  - `do_methods`: these are the names of the different measurement
+    methods as defined in the temp\_oxy\_chla\_qaqc.R and extract\_CTD.R
+    scripts
+      - current values for FCR: `exo`, `do`, `ctd`
+  - `chla_methods`: these are the names of the different measurement
+    methods as defined in the temp\_oxy\_chla\_qaqc.R and extract\_CTD.R
+    scripts
+      - current values for FCR: `exo`, `ctd`
+  - `fdom_methods`: these are the names of the different measurement
+    methods as defined in the temp\_oxy\_chla\_qaqc.R and
+    extract\_nutrients.R scripts
+      - current values for FCR: `exo`, `grap_sample`
+  - `nh4_methods`: these are the names of the different measurement
+    methods as defined in the extract\_nutrients.R
+      - current values for FCR: `grap_sample`
+  - `no3_methods`: these are the names of the different measurement
+    methods as defined in the extract\_nutrients.R
+      - current values for FCR: `grap_sample`
+  - `srp_methods`: these are the names of the different measurement
+    methods as defined in the extract\_nutrients.R
+  - `time_threshold_seconds_temp`: this is the number of seconds that an
+    observation has to be within the `start_time_local` to be used in
+    the analysis
+  - `time_threshold_seconds_oxygen`: this is the number of seconds that
+    an observation has to be within the `start_time_local` to be used in
+    the analysis
+  - `time_threshold_seconds_chla`: this is the number of seconds that an
+    observation has to be within the `start_time_local` to be used in
+    the analysis
+  - `time_threshold_seconds_fdom`: this is the number of seconds that an
+    observation has to be within the `start_time_local` to be used in
+    the analysis
+  - `time_threshold_seconds_nh4`: this is the number of seconds that an
+    observation has to be within the `start_time_local` to be used in
+    the analysis
+  - `time_threshold_seconds_no3`: this is the number of seconds that an
+    observation has to be within the `start_time_local` to be used in
+    the analysis
+  - `time_threshold_seconds_srp`: this is the number of seconds that an
+    observation has to be within the `start_time_local` to be used in
+    the analysis
+  - `distance_threshold_meter`: this is the distances in meters that an
+    observation has to be within to be matched to a value in
+    `modeled_depths`.
 
 ### Initial Conditions (GLM)
 
-  - `lake_depth_init`:
-  - `default_temp_init`:
-  - `default_temp_init_depths`:
-  - `the_sals_init`:
-  - `default_snow_thickness_init`:
-  - `default_white_ice_thickness_init`:
-  - `default_blue_ice_thickness_init`:
+  - `lake_depth_init`: Initial lake depth (meters)
+  - `default_temp_init`: vector of initial temperature profile
+  - `default_temp_init_depths`: vector of depths in initial temperature
+    profile
+  - `the_sals_init`: vector of initial salinty values
+  - `default_snow_thickness_init`: initial snow thickness (cm)
+  - `default_white_ice_thickness_init`: initial white ice thickness (cm)
+  - `default_blue_ice_thickness_init`: initial blue ice thickness (cm)
 
 ### Water quality variable information
 
   - `tchla_components_vars`: The names of the phytoplankton groups that
     contribute to total chl-a in GLM
-  - `wq_names`: define water quality variables modeled. Not used if
-    include\_wq == FALSE
-  - `biomass_to_chla`: carbon to chlorophyll ratio (mg C/mg chla) for
-    each group in `tchla_components_vars`. 12 g/ mole of C vs. X g/ mole
-    of chla
-  - `init_donc`:
-  - `init_dopc`:
-  - `init_ponc`:
-  - `init_popc`:
-  - `OXY_oxy_init`:
-  - `CAR_pH_init`:
-  - `CAR_dic_init`:
-  - `CAR_ch4_init`:
-  - `SIL_rsi_init`:
-  - `NIT_amm_init`:
-  - `NIT_nit_init`:
-  - `PHS_frp_init`:
-  - `OGM_doc_init`:
-  - `OGM_poc_init`:
-  - `OGM_pon_init`:
-  - `OGM_pop_init`:
-  - `NCS_ss1_init`:0
-  - `PHS_frp_ads_init`:
-  - `PHY_TCHLA_init`:
-  - `init_phyto_proportion`:
+  - `wq_names`: GLM names of the water quality variables modeled. Not
+    used if include\_wq == FALSE
+  - `biomass_to_chla`: Carbon to chlorophyll ratio (mg C/mg chla) for
+    each group in `tchla_components_vars`.
+      - 12 g/ mole of C vs. X g/ mole of chla
+  - `init_donc`: Initial ratio of DON:DOC
+  - `init_dopc`: Initial ratio of DOP:DOC
+  - `init_ponc`: Initial ratio of PON:POC
+  - `init_popc`: Initial ratio of <POP:POC>
+  - `OXY_oxy_init`: Initial concentration (mmol/m3)
+  - `CAR_pH_init`: Initial concentration (mmol/m3)
+  - `CAR_dic_init`: Initial concentration (mmol/m3)
+  - `CAR_ch4_init`: Initial concentration (mmol/m3)
+  - `SIL_rsi_init`: Initial concentration (mmol/m3)
+  - `NIT_amm_init`: Initial concentration (mmol/m3)
+  - `NIT_nit_init`: Initial concentration (mmol/m3)
+  - `PHS_frp_init`: Initial concentration (mmol/m3)
+  - `OGM_doc_init`: Initial concentration (mmol/m3)
+  - `OGM_poc_init`: Initial concentration (mmol/m3)
+  - `OGM_pon_init`: Initial concentration (mmol/m3)
+  - `OGM_pop_init`: Initial concentration (mmol/m3)
+  - `NCS_ss1_init`: Initial concentration (mmol/m3)
+  - `PHS_frp_ads_init`: Initial concentration (mmol/m3)
+  - `PHY_TCHLA_init`: Initial concentration (ug/L)
+  - `init_phyto_proportion`: vector of the initial proportion of total
+    chla that is each phytoplankton group in `tchla_components_vars`
+    represents. Must add up to 1.0
 
 ### Observation uncertainty
 
-  - `obs_error_temperature_intercept`:
-  - `obs_error_temperature_slope`:
-  - `obs_error_wq_intercept_phyto`:
-  - `obs_error_wq_intercept`:
-  - `obs_error_wq_slope_phyto`:
-  - `obs_error_wq_slope`:
+  - `obs_error_temperature_intercept`: the component that is independent
+    of the measurement magnitude
+  - `obs_error_temperature_slope`: the component that linearly scales
+    with the magnitude of the measurement
+  - `obs_error_wq_intercept_phyto`: Not used
+  - `obs_error_wq_slope_phyto`: Not used
+  - `obs_error_wq_intercept`: the component that is independent of the
+    measurement magnitude. A vector of with the same length as
+    `wq_names`
+  - `obs_error_wq_slope`: the component that linearly scales with the
+    magnitude of the measurement. A vector of with the same length as
+    `wq_names`
 
 ### Process uncertainty
 
-  - `temp_process_error`:
-  - `OXY_oxy_process_error`:
-  - `CAR_pH_process_error`:
-  - `CAR_dic_process_error`:
-  - `CAR_ch4_process_error`:
-  - `SIL_rsi_process_error`:
-  - `NIT_amm_process_error`:
-  - `NIT_nit_process_error`:
-  - `PHS_frp_process_error`:
-  - `OGM_doc_process_error`:
-  - `OGM_poc_process_error`:
-  - `OGM_don_process_error`:
-  - `OGM_pon_process_error`:
-  - `OGM_dop_process_error`:
-  - `OGM_pop_process_error`:
-  - `NCS_ss1_process_error`:
-  - `PHS_frp_ads_process_error`:
-  - `PHY_TCHLA_process_error`:
-  - `PHY_process_error`:
+  - `temp_process_error`: variance of process uncertainty
+  - `OXY_oxy_process_error`: variance of process uncertainty
+  - `CAR_pH_process_error`: variance of process uncertainty
+  - `CAR_dic_process_error`: variance of process uncertainty
+  - `CAR_ch4_process_error`: variance of process uncertainty
+  - `SIL_rsi_process_error`: variance of process uncertainty
+  - `NIT_amm_process_error`: variance of process uncertainty
+  - `NIT_nit_process_error`: variance of process uncertainty
+  - `PHS_frp_process_error`: variance of process uncertainty
+  - `OGM_doc_process_error`: variance of process uncertainty
+  - `OGM_poc_process_error`: variance of process uncertainty
+  - `OGM_don_process_error`: variance of process uncertainty
+  - `OGM_pon_process_error`: variance of process uncertainty
+  - `OGM_dop_process_error`: variance of process uncertainty
+  - `OGM_pop_process_error`: variance of process uncertainty
+  - `NCS_ss1_process_error`: variance of process uncertainty
+  - `PHS_frp_ads_process_error`: variance of process uncertainty
+  - `PHY_TCHLA_process_error`: variance of process uncertainty
+  - `PHY_process_error`: variance of process uncertainty
 
 ### Initial condition uncertainty
 
-  - `temp_init_error`:
-  - `OXY_oxy_init_error`:
-  - `CAR_pH_init_error`:
-  - `CAR_dic_init_error`:
-  - `CAR_ch4_init_error`:
-  - `SIL_rsi_init_error`:
-  - `NIT_amm_init_error`:
-  - `NIT_nit_init_error`:
-  - `PHS_frp_init_error`:
-  - `OGM_doc_init_error`:
-  - `OGM_poc_init_error`:
-  - `OGM_don_init_error`:
-  - `OGM_pon_init_error`:
-  - `OGM_dop_init_error`:
-  - `OGM_pop_init_error`:
-  - `NCS_ss1_init_error`:
-  - `PHS_frp_ads_init_error`:
-  - `PHY_TCHLA_init_error`:
-  - `PHY_init_error`:
+  - `temp_init_error`: variance of initial temperature
+  - `OXY_oxy_init_error`: variance of initial oxygen
+  - `CAR_pH_init_error`: variance of initial pH
+  - `CAR_dic_init_error`: variance of initial DIC
+  - `CAR_ch4_init_error`: variance of initial CH4
+  - `SIL_rsi_init_error`: variance of initial Silica
+  - `NIT_amm_init_error`: variance of initial Ammonium
+  - `NIT_nit_init_error`: variance of initial Nitrate
+  - `PHS_frp_init_error`: variance of initial Phosphorus
+  - `OGM_doc_init_error`: variance of initial DOC
+  - `OGM_poc_init_error`: variance of initial POC
+  - `OGM_don_init_error`: variance of initial DON
+  - `OGM_pon_init_error`: variance of initial PON
+  - `OGM_dop_init_error`: variance of initial DOP
+  - `OGM_pop_init_error`: variance of initial POP
+  - `NCS_ss1_init_error`: variance of initial SS1
+  - `PHS_frp_ads_init_error`: variance of initial Adsorped Phosphorus
+  - `PHY_TCHLA_init_error`: variance of initial Total Chl-a
+  - `PHY_init_error`: variance of initial Phytoplankton biomass
 
 ### Management specific variables
 
-  - `simulate_SSS`:
-  - `forecast_no_SSS`:
-  - `forecast_SSS_flow`:
-  - `forecast_SSS_Oxy`:
-  - `sss_fname`:
-  - `sss_inflow_factor`:
-  - `sss_depth`:
+  - `simulate_SSS`: include SSS in simulations with observed drivers
+    (i.e., data assimilation simulations)
+      - `TRUE`: include
+      - `FALSE`: don’t include
+  - `forecast_no_SSS`: Include SSS in forecast
+      - `TRUE`: include
+      - `FALSE`: don’t include
+  - `forecast_SSS_flow`: Flow rate of SSS in forecast (m3/day)
+  - `forecast_SSS_Oxy`: Oxygen concentration of SSS in forecast
+    (mmol/m3)
+  - `sss_fname`: full path to the file that has the SSS Flow and oxygen
+    data
+  - `sss_inflow_factor`: a scalar to multiply FLOW rate of SSS
+  - `sss_depth`: The depth (meters) of the SSS inflow/outflow
 
 ### Plotting related options
 
-  - `focal_depths_wq`:
-  - `focal_depths_manager`:
-  - `turnover_index_1`:
-  - `turnover_index_2`:
+  - `focal_depths_manager`: A vector of depths that are included in the
+    plot with the % change of turnover.  
+  - `turnover_index_1`: the top depth used in the calculation of whether
+    the lake is mixed
+  - `turnover_index_2`: the bottom depth used in the calculation of
+    whether the lake is mixed
