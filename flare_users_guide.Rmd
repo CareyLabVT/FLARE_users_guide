@@ -3,6 +3,8 @@ title: "FLARE Users Guide"
 author: "R. Quinn Thomas"
 date: "4/23/2020"
 output: 
+  github_document:
+    toc: true
   html_document:
     toc: true
     theme: united
