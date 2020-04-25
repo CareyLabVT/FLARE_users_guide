@@ -7,7 +7,7 @@ R. Quinn Thomas
 
   - R Studio
 
-## Step 1: Set up
+## 1: Set up
 
 To set up the files needed for FLARE perform either Step 1a or Step 1b
 
@@ -16,14 +16,14 @@ To set up the files needed for FLARE perform either Step 1a or Step 1b
   - Step 1b is required if you want to automatically pull new data from
     GitHub
 
-### Step 1a: Pre-packaged code and data
+### 1a: Pre-packaged code and data
 
 Download and unzip the file
 here:
 
-`https://www.dropbox.com/s/pqwgtmcoplx3zsa/flare_users_guide_files.zip?dl=0`
+`https://www.dropbox.com/s/za4n1h0t5559u8v/flare_users_guide_files.zip?dl=0`
 
-### Step 1b: Generating directories, downloading code, and downloading data manually
+### 1b: Generating directories, downloading code, and downloading data manually
 
 **Download FLARE code**
 
@@ -120,19 +120,19 @@ download.file("https://portal.edirepository.org/nis/dataviewer?packageid=edi.389
     directory) by running the following command in your terminal
     
     `mkdir
-    /Users/quinn/Dropbox/Research/SSC_forecasting/flare_training/flare_test_sim`
+    /Users/quinn/Dropbox/Research/SSC_forecasting/flare_training/flare_simulation`
 
 Copy the following files from `FLARE/example_configuration_files` to
-`flare_test_sim`
+`flare_simulation`
 
   - `initiate_forecast_example.R`
   - `glm3_woAED.nml`
   - `configure_FLARE.R`
 
-## Step 2: Configure simulation
+## 2: Configure simulation (GLM)
 
 A FLARE simulation with AED requires three files that should be in your
-`flare_test_sim` directory. The configuration are spread across the
+`flare_simulation` directory. The configuration are spread across the
 files
 
   - `initiate_forecast_example.R`
@@ -141,7 +141,7 @@ files
 
 ### glm3\_woAED.nml
 
-`glm3_woAED.nml` is already configured for FCR.
+`glm3_woAED.nml` is already configured to run only GLM for FCR.
 
 ### initiate\_forecast\_example.R
 
@@ -150,7 +150,7 @@ output. In this file you will modify the following variables
 
   - `data_location`: This is the `SCC_data` directory (full path)
   - `code_folder`: This is the `FLARE` directory (full path)
-  - `forecast_location`: This is the `flare_test_sim` directory (full
+  - `forecast_location`: This is the `flare_simulation` directory (full
     path)
   - `execute_location`: This is the same as `forecast_location` unless
     you are executing the simulation in a different directory. I use
@@ -205,7 +205,7 @@ If you set up your directories and modified the
 `initiate_forecast_example.R` as described above, then you will not need
 to modify `configure_FLARE.R` to do a test simulation.
 
-## Step 3: Run your first simulation
+## 3: Run your first simulation (GLM)
 
 To run your first FLARE simulation confirm that the following variables
 are set in your `initiate_forecast_example.R` file:
@@ -222,9 +222,9 @@ Now source `initiate_forecast_example.R`.
 ![](images/sourcing_file.png)
 
 You will find that a `working_directory` directory is created in your
-`flare_test_sim` directory. This is were all the files for the
+`flare_simulation` directory. This is were all the files for the
 simulation are stored. After the simulation is finished all the
-important files are moved to the `flare_test_sim` directory so it is
+important files are moved to the `flare_simulation` directory so it is
 fine to delete the `working_directory`.
 
 Your console will show a lot of messages from R that are mostly
@@ -235,10 +235,10 @@ out to the console.
 ![](images/flare_console.png)
 
 Once the simulation is complete you will find a PDF and a netcdf (.nc)
-file in `flare_test_sim` directory. The PDF is the plotted output and
+file in `flare_simulation` directory. The PDF is the plotted output and
 the netcdf file is the flare output.
 
-## Step 3: Examining FLARE output
+## 4: Examining FLARE output
 
 First, you can view the PDF that is output automatically. The PDF
 includes the mean and 95% CI for all depths simulated. The observations
@@ -531,7 +531,76 @@ d
     ## 10 2018-07-21 07:00:00      26.6         26.6         26.5 FALSE       26.7
     ## # … with 103 more rows
 
-## Step 4: Modifying FLARE
+## 5: Running GLM-AED
+
+To run GLM-AED fist copy a glm namelist file to your simulation
+`flare_simulation` directory. Thre are two example options in the
+`FLARE/example_configuration_files` directory. They differ in whether
+they include an additional inflow and outflow that represents the SSS.
+
+  - `glm3_wAED_wSSS.nml`: Include the SSS inflows and outflows
+  - `glm3_wAED_woSSS.nml`: Excludes the SSS inflows and outflows
+
+Second, copy an aed namelist file to your simulation `flare_simulation`
+directory. Thre are two example options in the
+`FLARE/example_configuration_files` directory. They differ in whether
+they include all the water quality variables in AED or only oxygen.
+
+  - `aed2.nml`: All variables
+  - `aed2_only_Oxy.nml`: Only oxygen
+
+Third, modify the following in `configure_FLARE.R`:
+
+  - `include_wq`: Set to `TRUE`
+  - `base_GLM_nml`: full path to the glm namelist matches the one in
+    your `flare_simulation` that includes AED.
+  - `base_AED_nml`: full path to your aed namelist
+  - `base_AED_phyto_pars_nml`: full path to your phyto\_pars namelist
+  - `base_AED_zoop_pars_nml`: full path to your zoop\_pars namelist
+
+Finally, confirm that the following varibles in `configure_FALRE.R`
+match your desire use of the data:
+
+  - `do_methods`: these are the names of the different measurement
+    methods as defined in the temp\_oxy\_chla\_qaqc.R and extract\_CTD.R
+    scripts
+      - current values for FCR: `exo`, `do`, `ctd`
+  - `chla_methods`: these are the names of the different measurement
+    methods as defined in the temp\_oxy\_chla\_qaqc.R and extract\_CTD.R
+    scripts
+      - current values for FCR: `exo`, `ctd`
+  - `fdom_methods`: these are the names of the different measurement
+    methods as defined in the temp\_oxy\_chla\_qaqc.R and
+    extract\_nutrients.R scripts
+      - current values for FCR: `exo`, `grap_sample`
+  - `nh4_methods`: these are the names of the different measurement
+    methods as defined in the extract\_nutrients.R
+      - current values for FCR: `grap_sample`
+  - `no3_methods`: these are the names of the different measurement
+    methods as defined in the extract\_nutrients.R
+      - current values for FCR: `grap_sample`
+  - `srp_methods`: these are the names of the different measurement
+    methods as defined in the extract\_nutrients.R
+  - `time_threshold_seconds_oxygen`: this is the number of seconds that
+    an observation has to be within the `start_time_local` to be used in
+    the analysis
+  - `time_threshold_seconds_chla`: this is the number of seconds that an
+    observation has to be within the `start_time_local` to be used in
+    the analysis
+  - `time_threshold_seconds_fdom`: this is the number of seconds that an
+    observation has to be within the `start_time_local` to be used in
+    the analysis
+  - `time_threshold_seconds_nh4`: this is the number of seconds that an
+    observation has to be within the `start_time_local` to be used in
+    the analysis
+  - `time_threshold_seconds_no3`: this is the number of seconds that an
+    observation has to be within the `start_time_local` to be used in
+    the analysis
+  - `time_threshold_seconds_srp`: this is the number of seconds that an
+    observation has to be within the `start_time_local` to be used in
+    the analysis
+
+## 6: Modifying FLARE
 
 ### Turning off data assimilation
 
@@ -604,7 +673,7 @@ ensemble members.
 The variable `modeled_depths` allows you to adjust the depths that FLARE
 simulates
 
-## Step 5: Modifying FLARE for a new lake
+## 7: Modifying FLARE for a new lake
 
 We are in the process of making it easier to apply FLARE to a new lake.
 Currently applying FLARE to a new lake requires modifying R scripts
@@ -672,8 +741,9 @@ should have an `NA` in its place.
 And how to process them:
 
   - `temp_methods`: these are the names of the different measurement
-    methods as defined in the XXXX.R script that you have modified for
-    the new lake
+    methods as defined in the temp\_oxy\_chla\_qaqc.R and, potentially,
+    extract\_CTD.Rscript that you have modified for the new lake.
+      - current values for FCR: `thermistor`, `exo`, `do`, `ctd`
   - `time_threshold_seconds_temp`: this is the number of seconds that an
     observation has to be within the `start_time_local` to be used in
     the analysis
