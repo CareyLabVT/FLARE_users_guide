@@ -19,6 +19,15 @@ library(lubridate)
 
 ## Requirements
 * R Studio
+* R packages
+  * Tidyverse
+    * uses tidyr version 1.0.0 or higher (uses `pivot_longer` and `pivot_wider`)
+  * mvtnorm
+  * ncdf4
+  * testit
+  * imputeTS
+  * tools
+  * rMR
 
 ## 1: Set up
 
@@ -78,6 +87,10 @@ Download and unzip the file here:
 * Download the met station data by running the following command in the terminal
 
   `git clone -b carina-data --single-branch https://github.com/CareyLabVT/SCCData.git carina-data`
+  
+* Download the NOAA forecasts for FCR by running the following command in the terminal
+
+  `git clone -b fcre --single-branch https://github.com/CareyLabVT/noaa_gefs_forecasts.git fcre`
 
 * Download the catwalk data by running the following command in the terminal
 
@@ -205,7 +218,7 @@ in your `initiate_forecast_example.R` file:
 * `forecast_days <- 16`
 * `start_day_local <- "2018-07-12"`  
 * `start_time_local <- "07:00:00"`
-* `forecast_start_day_local <- "2018-10-16"`
+* `forecast_start_day_local <- "2018-07-15"`
 
 Now source `initiate_forecast_example.R`.
 
@@ -239,10 +252,8 @@ you can not open them without special software.  R has useful functions for
 working with netcdf files.  For example, this is how you would analyze the mean
 temperature output from FLARE.  
 
-
-
 ```{r}
-nc_file <- "example_output/test_H_2018_07_12_2018_10_16_F_16_4232020_15_48.nc"
+nc_file <- "example_output/test_H_2018_07_12_2018_07_15_F_16_4302020_15_13.nc"
 nc <- nc_open(nc_file)
 ```
 
@@ -547,7 +558,7 @@ specific directory within your `/FLARE/Rscripts/[lake_name]` directory.
   
 You will also need to update the file names for the driver and in situ data: 
 
-* `temp_obs_fname`: the in situ data (temperature, do, etc)
+* `insitu_obs_fname`: the in situ data (temperature, do, etc)
 * `met_obs_fname`: the meteorological station
 * `inflow_file1`: the first inflow (the weir at FCR)
 * `inflow_file2`: an optional second inflow
@@ -558,7 +569,7 @@ FLARE also allows you to include a manual CTD file.
 * `ctd_fname`: a value of NA is needed if you do not have or do not want to use
 CTD measurements
 
-Importantly, `temp_obs_fname`, `met_obs_fname`, and `inflow_file1` **requires** two 
+Importantly, `insitu_obs_fname`, `met_obs_fname`, and `inflow_file1` **requires** two 
 file names.  The first is the realtime file that has not had QAQC applied (i.e,
 just downloaded from the sensor).  The second is file that has QAQC applied (i.e,
 a file from a data repository).  If any time periods overlap between the two
@@ -626,7 +637,7 @@ are to the files used at fcre.
 * `in_situ_qaqc.R`: This function calls the following functions that need to be
   modified best on the format of the lake data streams
   * Inputs: 
-    * `temp_obs_fname`
+    * `insitu_obs_fname`
     * `data_location`
     * `maintenance_file`
     * `ctd_fname`
@@ -807,9 +818,18 @@ A guide to the variables in `configure_flare.R`
 
 ### Observation information
 
+* `realtime_insitu_location`: full path to the directory with the non-QAQCed 
+  in situ data (i.e., thermistor chain)
+* `realtime_met_station_location`: full path to the directory with the non-QAQCed 
+  met station data
+* `manual_data_location`: full path to the directory with the QAQCed 
+  datasets
+* `realtime_inflow_data_location`: full path to the directory with the 
+  non-QAQCed inflow data.
+
 * `ctd_fname`: full path of CTD file
 * `nutrients_fname`: full path of nutrients file
-* `temp_obs_fname`: vector of two full paths
+* `insitu_obs_fname`: vector of two full paths
   * 1: path of the realtime file (required)
   * 2: path of respository (QAQCed) file (if not used, must have `NA`)
 * `variable_obsevation_depths`: Use the depth measurment in the exo to convert
