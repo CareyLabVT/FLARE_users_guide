@@ -1,6 +1,5 @@
 ---
 title: "FLARE Users Guide"
-author: "R. Quinn Thomas"
 date: "4/23/2020"
 output: 
   html_document:
@@ -126,13 +125,6 @@ https://www.dropbox.com/s/za4n1h0t5559u8v/flare_users_guide_files.zip?dl=0
   Download the file `Met_final_2015_2019.csv` and move it to your `SCC_data/manual-data`
   directory
   
-  * Alternatively you can use R to download from EDI using the following command
-  
-```{r eval = FALSE}
-download.file("https://portal.edirepository.org/nis/dataviewer?packageid=edi.389.4&entityid=c1db8816742823eba86696b29f106d0f",
-              destfile = "SCC_data/Met_final_2015_2019.csv")
-```
-
 **Create directory for running FLARE**
 
 * Create a directory in your working directory (`flare_training`, not the SCC_data directory) 
@@ -209,7 +201,10 @@ the EnKF function `run_flare` and the plotting code `plot_forecast`.
 
 ### glm3_woAED.nml
 
-`glm3_woAED.nml` is already configured to run only GLM (not GLM-AED) for FCR.
+`glm3_woAED.nml` is the configuration file that is required by GLM.  It can be
+configurated to run only GLM or GLM + AED.  This version is already configured 
+to run only GLM for FCR and you do not need to modify it for the example 
+simulation.
 
 ### configure_FLARE.R
 
@@ -294,8 +289,11 @@ To visualize the output, you can use the following code
 temp_mean <- ncvar_get(nc, varid = "temp_mean") #get the mean temperatures from the netcdf file
 t <- ncvar_get(nc, varid = "time") #get the corresponding times from the netcdf file
 t <- as.POSIXct(t, origin = '1970-01-01 00:00.00 UTC', tz = "EST") #format times as datetime
+depths <- ncvar_get(nc, varid = "z")
 
-depth_index <- 3 #What depth are you interested in?
+focal_depth <- 1 #What depth are you interested in (meters)
+depth_index <- which.min(abs(depths - 1))
+
 d <- tibble(time = t, #create a dataframe of times and temperatures at the specified depth
             temp_mean = temp_mean[,depth_index])
 
@@ -311,13 +309,16 @@ forecasted you need the `forecasted` variable in the output.
 
 ```{r out.width = '50%'}
 forecasted <- ncvar_get(nc, varid = "forecasted") #binary. 1: forecasted, 0: not forecasted
-depth_index <- 3
+
+focal_depth <- 1 #What depth are you interested in (meters)
+depth_index <- which.min(abs(depths - 1))
+
 d <- tibble(time = t, 
             temp_mean = temp_mean[,depth_index],
             forecasted = as.logical(forecasted))
 
 ggplot(d) +
-  geom_line(aes(x = time, y = temp_mean, color = forecasted)) +
+  geom_line(aes(x = time, y = temp_mean)) +
   geom_point(aes(x = time, y = temp_mean, color = forecasted))  +
   labs(x = "Date", y = expression(~degree~C), title = "FCR forecast")
 ```
@@ -330,9 +331,12 @@ temp_upper95 <- ncvar_get(nc, varid = "temp_upperCI")
 temp_lower95 <- ncvar_get(nc, varid = "temp_lowerCI")
 forecasted <- ncvar_get(nc, varid = "forecasted")
 t <- ncvar_get(nc, varid = "time")
+depths <- ncvar_get(nc, varid = "z")
 t <- as.POSIXct(t, origin = '1970-01-01 00:00.00 UTC', tz = "EST")
 
-depth_index <- 4
+focal_depth <- 1 #What depth are you interested in (meters)
+depth_index <- which.min(abs(depths - 1))
+
 d <- tibble(time = t,
             temp_mean = temp_mean[,depth_index],
             temp_upper95 = temp_upper95[,depth_index],
@@ -354,10 +358,13 @@ temp_upper95 <- ncvar_get(nc, varid = "temp_upperCI")
 temp_lower95 <- ncvar_get(nc, varid = "temp_lowerCI")
 forecasted <- ncvar_get(nc, varid = "forecasted")
 t <- ncvar_get(nc, varid = "time")
+depths <- ncvar_get(nc, varid = "z")
 t <- as.POSIXct(t, origin = '1970-01-01 00:00.00 UTC', tz = "EST")
 obs <- ncvar_get(nc, varid = "obs")
 
-depth_index <- 4
+focal_depth <- 1 #What depth are you interested in (meters)
+depth_index <- which.min(abs(depths - 1))
+
 d <- tibble(time = t,
             temp_mean = temp_mean[,depth_index],
             temp_upper95 = temp_upper95[,depth_index],
@@ -382,9 +389,11 @@ temp <- ncvar_get(nc, varid = "temp")
 forecasted <- ncvar_get(nc, varid = "forecasted")
 t <- ncvar_get(nc, varid = "time")
 t <- as.POSIXct(t, origin = '1970-01-01 00:00.00 UTC', tz = "EST")
+depths <- ncvar_get(nc, varid = "z")
 obs <- ncvar_get(nc, varid = "obs")
 
-depth_index <- 4
+focal_depth <- 1 #What depth are you interested in (meters)
+depth_index <- which.min(abs(depths - 1))
 
 temp_lower95 <- rep(NA, length(t))
 temp_upper95 <- rep(NA, length(t))
@@ -547,8 +556,10 @@ lakes. The following steps are required to set up a new lake:
 
 Within the glm namelist (`glm3_woAED.nml` in the tutorial), at minimum you need to change
 the variables in the `&morphometry`, `&inflow`, and `&outflow` sections. Please
-see the [GLM users guide](https://aed.see.uwa.edu.au/research/models/GLM/index.html) for 
-more information about the variables in these sections of the namelist. 
+see the [GLM users guide](https://aed.see.uwa.edu.au/research/models/GLM/index.html) 
+for more information about the variables in these sections of the namelist. 
+Additionally, the paper describing [GLM 3.0.0](https://www.geosci-model-dev.net/12/473/2019/) 
+describes variables in the namelist
 
 You will also need to modify the `zone_heights` in the
 `&sediment` section for your new lake. Currently, FLARE only handles two 
@@ -802,7 +813,9 @@ A guide to the variables in `configure_flare.R`
 * `ensemble_size`: Total number of ensemble members
 * `n_ds_members`: Number of random samples drawn from each NOAA GEF ensemble
   member based on the variance-covariance matrix from downscaling analysis.
-* `n_inflow_outflow_members`: Number of random samples drawn from the 
+* `n_inflow_outflow_members`: Number of random samples drawn from the normal 
+   distribution describing the residual error in the inflow rate and inflow
+   temperature model
 
 ### Process uncertainty adaption
 
