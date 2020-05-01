@@ -1,5 +1,5 @@
 ---
-title: "FLARE Users Guide"
+title: "FLARE Users Guide and Tutorial"
 date: "4/23/2020"
 output: 
   html_document:
@@ -15,6 +15,43 @@ library(tidyverse)
 library(ncdf4)
 library(lubridate)
 ```
+## Background
+
+This document serves as a users guide and a tutorial for the FLARE (Forecasting
+Lake and Reservior Ecosystems) system ([Thomas et al. 2020](https://www.biorxiv.org/content/10.1101/2020.01.22.915538v1.abstract)). FLARE generates 
+forecasts and forecast uncertainty of water temperature and water quality for a 
+16-day time horizon at multiple depths of a lake or reservior. It uses data 
+assimilation to update the initial starting point for a forecast and the model 
+parameters based a real-time statistical comparsions to observations.  While it 
+has been developed, tested, and evaluated for Falling Creek Reservior in 
+Vinton,VA ([Thomas et al. 2020](https://www.biorxiv.org/content/10.1101/2020.01.22.915538v1.abstract)), this document provides guidance for adapting 
+FLARE to different waterbodies.
+
+FLARE is a set of R scripts that
+
+* Downloads, cleans, organizes data required for data assimilation and 
+  forecasting
+* Generating the inputs and configuration files required by the General Lake 
+  Model (GLM)
+* Applying data assimilation to GLM
+* Processing and archiving forecast output
+* Visualizing forecast ouptut
+
+FLARE uses the 1-D General Lake Model ([Hipsey et al. 2019](https://www.geosci-model-dev.net/12/473/2019/)) as the mechanistic 
+process model that predicts hydrodynamics of the lake or reservior.  For 
+forecasts of water quality, it uses GLM with the Aquatic Ecosystem Dynamics 
+library.   The binaries for GLM and GLM-AED are included in the FLARE code that
+is avialable on GitHub. FLARE requires GLM version 3.1 or higher.
+
+More information about the GLM can be found here:
+
+* [GLM users guide](https://aed.see.uwa.edu.au/research/models/GLM/index.html) 
+* [GLM 3.0.0 manuscript](https://www.geosci-model-dev.net/12/473/2019/) 
+* [GLM on GitHub](https://github.com/AquaticEcoDynamics/GLM)
+* [AED on GitHub](https://github.com/AquaticEcoDynamics/libaed2)
+
+FLARE development has been supported by grants from National Science Foundation 
+(CNS-1737424, DEB-1753639, EF-1702506, DBI-1933016, DEB-1926050)
 
 ## Requirements
 * [RStudio](https://rstudio.com/products/rstudio/download/)
@@ -40,7 +77,7 @@ To set up the files needed for FLARE perform either Step 1a or Step 1b
 
 Download and unzip the file here:
 
-https://www.dropbox.com/s/za4n1h0t5559u8v/flare_users_guide_files.zip?dl=0
+https://www.dropbox.com/s/eijknbfzt2ld86g/flare_users_guide_files.zip?dl=0
 
 ### 1b: Generating directories, downloading code, and downloading data manually 
 
