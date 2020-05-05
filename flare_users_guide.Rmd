@@ -18,14 +18,14 @@ library(lubridate)
 ## Background
 
 This document serves as a users guide and a tutorial for the FLARE (Forecasting
-Lake and Reservior Ecosystems) system ([Thomas et al. 2020](https://www.biorxiv.org/content/10.1101/2020.01.22.915538v1.abstract)). FLARE generates 
-forecasts and forecast uncertainty of water temperature and water quality for a 
-16-day time horizon at multiple depths of a lake or reservior. It uses data 
-assimilation to update the initial starting point for a forecast and the model 
-parameters based a real-time statistical comparsions to observations.  While it 
-has been developed, tested, and evaluated for Falling Creek Reservior in 
-Vinton,VA ([Thomas et al. 2020](https://www.biorxiv.org/content/10.1101/2020.01.22.915538v1.abstract)), this document provides guidance for adapting 
-FLARE to different waterbodies.
+Lake and Reservior Ecosystems) system ([Thomas et al. 2020](https://www.biorxiv.org/content/10.1101/2020.01.22.915538v1.abstract)). 
+FLARE generates forecasts and forecast uncertainty of water temperature and 
+water quality for a 16-day time horizon at multiple depths of a lake or 
+reservior. It uses data assimilation to update the initial starting point for a 
+forecast and the model parameters based a real-time statistical comparsions to
+observations.  While it has been developed, tested, and evaluated for Falling 
+Creek Reservior in Vinton,VA ([Thomas et al. 2020](https://www.biorxiv.org/content/10.1101/2020.01.22.915538v1.abstract)), 
+this document provides guidance for adapting FLARE to different waterbodies.
 
 FLARE is a set of R scripts that
 
@@ -72,12 +72,15 @@ To set up the files needed for FLARE perform either Step 1a or Step 1b
 * Step 1a is the quickest way to get FLARE set-up but won't have the most 
   recent data or code.
 * Step 1b is required if you want to automatically pull new data from GitHub
+* Step 1c is uses a docker container that already has the libraries that FLARE
+  requires installed.  Similar to step 1a, the Docker container won't have the 
+  most recent data or code.
 
 ### 1a: Pre-packaged code and data
 
 Download and unzip the file here:
 
-https://www.dropbox.com/s/eijknbfzt2ld86g/flare_users_guide_files.zip?dl=0
+https://www.dropbox.com/s/enl9srn5rx7ecxp/flare_users_guide_files.zip?dl=0
 
 ### 1b: Generating directories, downloading code, and downloading data manually 
 
@@ -105,7 +108,8 @@ https://www.dropbox.com/s/eijknbfzt2ld86g/flare_users_guide_files.zip?dl=0
   
   `git clone https://github.com/CareyLabVT/FLARE.git`
   
-  After the cloning process finishes, you should see a new folder named `FLARE` in your working directory
+  After the cloning process finishes, you should see a new folder named `FLARE` 
+  in your working directory
   
 **Download data**
 
@@ -124,11 +128,13 @@ https://www.dropbox.com/s/eijknbfzt2ld86g/flare_users_guide_files.zip?dl=0
 
   `cd SCC_data`
 
-* Download the met station data by running the following command in the terminal (this may take a while)
+* Download the met station data by running the following command in the terminal
+  (this may take a while)
 
   `git clone -b carina-data --single-branch https://github.com/CareyLabVT/SCCData.git carina-data`
   
-* Download the NOAA forecasts for FCR by running the following command in the terminal
+* Download the NOAA forecasts for FCR by running the following command in the 
+  terminal
 
   `git clone -b fcre --single-branch https://github.com/CareyLabVT/noaa_gefs_forecasts.git fcre`
 
@@ -159,13 +165,13 @@ https://www.dropbox.com/s/eijknbfzt2ld86g/flare_users_guide_files.zip?dl=0
   
   * If you would like to do this manually, the file can be found at:
   https://portal.edirepository.org/nis/mapbrowse?packageid=edi.389.4.
-  Download the file `Met_final_2015_2019.csv` and move it to your `SCC_data/manual-data`
-  directory
+  Download the file `Met_final_2015_2019.csv` and move it to your 
+  `SCC_data/manual-data` directory
   
 **Create directory for running FLARE**
 
-* Create a directory in your working directory (`flare_training`, not the SCC_data directory) 
-using `mkdir`. For example:
+* Create a directory in your working directory (`flare_training`, not the 
+`SCC_data` directory) using `mkdir`. For example:
 
   `mkdir /Users/quinn/Dropbox/Research/SSC_forecasting/flare_training/flare_simulation`
 
@@ -176,6 +182,23 @@ using `mkdir`. For example:
  * `glm3_woAED.nml`
  * `configure_FLARE.R`
  
+### 1c: Using a Docker Container
+
+Below are the steps for running FLARE as a Docker Container.  If you already
+have Docker Desktop on your computer you can skip the first step.
+
+* Download and install Docker Desktop from Docker.com
+  * https://www.docker.com/products/docker-desktop
+* Open a Terminal window in Mac or Command Prompt window in Windows
+* Run this command in Terminal or Command Prompt (this will take a while to
+  download)
+  `docker run --name flare-dev -e PASSWORD=password -p 8787:8787 flareforecast/flare_scc_tutorial2`
+* Open a webbrower and enter the following address: http://localhost:8787
+* Enter the following user name and password
+  * user: rstudio
+  * password: password
+
+
 ## 2: Configure simulation (GLM)
 
 A FLARE simulation with AED requires three files that should be in your 
@@ -190,8 +213,8 @@ files are described in more detail below
 ### initiate_forecast_example.R
 
 This file is the main script that launches the FLARE code and plots the output.
-In this tutorial you will modify the following variables (for now only modify the 
-first three as specified)
+In this tutorial you will modify the following variables (for now only modify 
+the first three as specified)
 
 * `data_location`: This is the `SCC_data` directory (full path; you will need to 
 change this to reflect the location of your directory)
@@ -204,34 +227,36 @@ you will need to change this to reflect the location of your directory)
   code on a RAM disk to save read-writes to my hard disk. You don't need to do 
   this in the tutorial
 * `restart_file`: This is the full path to the file that you want to use as
-  initial conditions for the simulation. You will set this to `NA` if the simulation
-  is not a continuation of a previous simulation.
-* `sim_name`: a string with the name of your simulation. This will appear in your 
-  output file names
-* `forecast_days`: This is your forecast horizon. The max is `16` days. Set to `0`
-  if only doing data assimilation with observed drivers.
+  initial conditions for the simulation. You will set this to `NA` if the 
+  simulation is not a continuation of a previous simulation.
+* `sim_name`: a string with the name of your simulation. This will appear in 
+  your output file names
+* `forecast_days`: This is your forecast horizon. The max is `16` days. Set to 
+  `0`if only doing data assimilation with observed drivers.
 * `spin_up_days`: set to zero. Don't worry about this one.
 * `start_day_local`: The date that your simulation starts. Uses the YYYY-MM-DD
-   format (e.g., "2019-09-20"). `2018-07-12` is the first day in the SCC project (when
-   the catwalk temperature data comes online)
+   format (e.g., "2019-09-20"). `2018-07-12` is the first day in the SCC project
+   (when the catwalk temperature data comes online)
 * `start_time_local`: The time of day you want to start a forecast. Because GLM
   is a daily timestep model, the simulation will start at this time. It 
   uses `mm:hh:ss` format and must only be a whole hour. It is in the **local time
   zone** of the lake in standard time. It can be any hour if only doing data 
   assimilation with observed drivers (forecast_days = 0). If forecasting 
   (forecast_days > 0) it is required to match up with the availability of a NOAA 
-  forecast. NOAA forecasts are available at 
+  forecast. NOAA forecasts are available at the following times GMT so you must
+  select a local time that matches one of these times (i.e., 07:00:00 at FCR is
+  the 12:00:00 GMT NOAA forecast).
   * 00:00:00 GMT
   * 06:00:00 GMT
   * 12:00:00 GMT
   * 18:00:00 GMT
 * `forecast_start_day_local`: The date that you want forecasting to start in 
-   your simulation. Uses the YYYY-MM-DD format (e.g., "2019-09-20"). The difference
-   between `start_time_local` and `forecast_start_day_local` determines how 
-   many days of data assimilation occur using observed drivers before handing 
-   off to forecasted drivers and not assimilating data
-* `forecast_sss_on`: Only used in AED simulations for setting the SSS (hypolimnetic 
-oxygenation system) to on in the forecast
+   your simulation. Uses the YYYY-MM-DD format (e.g., "2019-09-20"). The 
+   difference between `start_time_local` and `forecast_start_day_local` 
+   determines how many days of data assimilation occur using observed drivers 
+   before handing off to forecasted drivers and not assimilating data
+* `forecast_sss_on`: Only used in AED simulations for setting the SSS 
+   (hypolimnetic oxygenation system) to on in the forecast
 
 `initiate_forecast_example.R` loads Rscripts and runs the FLARE code with
 the EnKF function `run_flare` and the plotting code `plot_forecast`.
@@ -418,8 +443,8 @@ ggplot(d,aes(x = time)) +
 ```
 
 Finally, you can calculate the statistics of the forecast directly from the 
-ensembles (rather than using the statistics already calculated in the netcdf file; 
-these should be identical for mean and 95% confidence intervals)
+ensembles (rather than using the statistics already calculated in the netcdf 
+file; these should be identical for mean and 95% confidence intervals)
 
 ```{r}
 temp <- ncvar_get(nc, varid = "temp")
@@ -453,10 +478,11 @@ d
 
 ## 5: Running GLM-AED
 
-To run GLM-AED fist copy a glm namelist file to your simulation `flare_simulation` 
-directory. Thre are two example options in the 
+To run GLM-AED fist copy a glm namelist file to your simulation 
+`flare_simulation` directory. Thre are two example options in the 
 `FLARE/example_configuration_files` directory. They differ in whether they 
-include an additional inflow and outflow that represents the SSS (bottom-water oxygenation system).
+include an additional inflow and outflow that represents the SSS (bottom-water 
+oxygenation system).
 
 * `glm3_wAED_wSSS.nml`: Include the SSS inflows and outflows
 * `glm3_wAED_woSSS.nml`: Excludes the SSS inflows and outflows
@@ -478,8 +504,8 @@ Third, modify the following in `configure_FLARE.R`:
 * `base_AED_phyto_pars_nml`: full path to your phyto_pars namelist
 * `base_AED_zoop_pars_nml`: full path to your zoop_pars namelist
 
-Finally, confirm that the following varibles in `configure_FALRE.R` match your desire
-use of the data:
+Finally, confirm that the following varibles in `configure_FALRE.R` match your 
+desire use of the data:
 
 * `do_methods`: these are the names of the different measurement methods as 
   defined in the temp_oxy_chla_qaqc.R and extract_CTD.R scripts
@@ -498,18 +524,18 @@ use of the data:
    * current values for FCR: `grap_sample`
 * `srp_methods`: these are the names of the different measurement methods as 
   defined in the extract_nutrients.R
-* `time_threshold_seconds_oxygen`: this is the number of seconds that an observation
-  has to be within the `start_time_local` to be used in the analysis
-* `time_threshold_seconds_chla`: this is the number of seconds that an observation
-  has to be within the `start_time_local` to be used in the analysis
-* `time_threshold_seconds_fdom`: this is the number of seconds that an observation
-  has to be within the `start_time_local` to be used in the analysis
-* `time_threshold_seconds_nh4`: this is the number of seconds that an observation
-  has to be within the `start_time_local` to be used in the analysis
-* `time_threshold_seconds_no3`: this is the number of seconds that an observation
-  has to be within the `start_time_local` to be used in the analysis
-* `time_threshold_seconds_srp`: this is the number of seconds that an observation
-  has to be within the `start_time_local` to be used in the analysis
+* `time_threshold_seconds_oxygen`: this is the number of seconds that an 
+  observation has to be within the `start_time_local` to be used in the analysis
+* `time_threshold_seconds_chla`: this is the number of seconds that an 
+  observation has to be within the `start_time_local` to be used in the analysis
+* `time_threshold_seconds_fdom`: this is the number of seconds that an 
+  observation has to be within the `start_time_local` to be used in the analysis
+* `time_threshold_seconds_nh4`: this is the number of seconds that an 
+  observation has to be within the `start_time_local` to be used in the analysis
+* `time_threshold_seconds_no3`: this is the number of seconds that an 
+  observation has to be within the `start_time_local` to be used in the analysis
+* `time_threshold_seconds_srp`: this is the number of seconds that an 
+  observation has to be within the `start_time_local` to be used in the analysis
 
 ## 6: Modifying FLARE
 
@@ -574,8 +600,8 @@ the magnitude of the measurement
 
 The variable `ensemble_size` allows you to adjust the size of the ensemble. You
 can use any value if you are using data assimilation with observed drivers. If 
-you are forecasting then `ensemble_size` must be a multiple of `21*n_ds_members`,
-where 21 is the number of NOAA GEF ensemble members.
+you are forecasting then `ensemble_size` must be a multiple of 
+`21 * n_ds_members`, where 21 is the number of NOAA GEF ensemble members.
 
 ### Changing the number of depths simulated
 
@@ -584,16 +610,16 @@ simulates
 
 ## 7: Modifying FLARE for a new lake
 
-We are in the process of making it easier to apply FLARE to a new lake. Currently
-applying FLARE to a new lake requires modifying R scripts because data 
+We are in the process of making it easier to apply FLARE to a new lake. 
+Currently applying FLARE to a new lake requires modifying R scripts because data 
 streams (meteorology, inflow, and in situ data) formats differ between
 lakes. The following steps are required to set up a new lake:
 
 ### Modify the glm namelist
 
-Within the glm namelist (`glm3_woAED.nml` in the tutorial), at minimum you need to change
-the variables in the `&morphometry`, `&inflow`, and `&outflow` sections. Please
-see the [GLM users guide](https://aed.see.uwa.edu.au/research/models/GLM/index.html) 
+Within the glm namelist (`glm3_woAED.nml` in the tutorial), at minimum you need 
+to change the variables in the `&morphometry`, `&inflow`, and `&outflow` 
+sections. Please see the [GLM users guide](https://aed.see.uwa.edu.au/research/models/GLM/index.html) 
 for more information about the variables in these sections of the namelist. 
 Additionally, the paper describing [GLM 3.0.0](https://www.geosci-model-dev.net/12/473/2019/) 
 describes variables in the namelist
@@ -627,32 +653,33 @@ You will also need to update the file names for the driver and in situ data:
 * `met_obs_fname`: the meteorological station
 * `inflow_file1`: the first inflow (the weir at FCR)
 * `inflow_file2`: an optional second inflow
-* `outflow_file1`: an optional outflow (NOTE: this currently is not used in FLARE)
+* `outflow_file1`: an optional outflow (NOTE: this currently is not used in 
+   FLARE)
 
 FLARE also allows you to include a separate file for CTD depth profiles:
 
 * `ctd_fname`: a value of NA is needed if you do not have or do not want to use
 CTD measurements
 
-Importantly, `insitu_obs_fname`, `met_obs_fname`, and `inflow_file1` **require** two 
-file names. The first is the realtime file that has not had QAQC applied (i.e,
-just downloaded from the sensor). The second is file that has QAQC applied (i.e,
-a file from a data repository). If any time periods overlap between the two
-files, FLARE will default the second (QAQCed) file. Historical data assimilation
-applications will use the QAQCed file. If you are missing one of the two file,
-the vector should have an `NA` in its place.
+Importantly, `insitu_obs_fname`, `met_obs_fname`, and `inflow_file1` **require**
+two file names. The first is the realtime file that has not had QAQC applied 
+(i.e,just downloaded from the sensor). The second is file that has QAQC applied 
+(i.e, a file from a data repository). If any time periods overlap between the 
+two files, FLARE will default the second (QAQCed) file. Historical data 
+assimilation applications will use the QAQCed file. If you are missing one of 
+the two file, the vector should have an `NA` in its place.
 
 You will need to specify how to process data files:
 
-* `temp_methods`: these are the names of the different measurement methods used to 
-aquire data (e.g. CTD profile, in situ thermistor), as defined in the 
-temp_oxy_chla_qaqc.R and, potentially, extract_CTD.R, scripts that 
-you have modified for the new lake. 
+* `temp_methods`: these are the names of the different measurement methods used 
+  to aquire data (e.g. CTD profile, in situ thermistor), as defined in the 
+  temp_oxy_chla_qaqc.R and, potentially, extract_CTD.R, scripts that 
+  you have modified for the new lake. 
     * current values for FCR: `thermistor`, `exo`, `do`, `ctd`
-* `time_threshold_seconds_temp`: this is how close a measurement needs to be to the 
-forecast time (`start_time_local`) to be used in the analysis, in seconds.
+* `time_threshold_seconds_temp`: this is how close a measurement needs to be to 
+  the forecast time (`start_time_local`) to be used in the analysis, in seconds.
 * `distance_threshold_meter`: this is the distances in meters that an observation
- has to be within to be matched to a value in `modeled_depths`.
+  has to be within to be matched to a value in `modeled_depths`.
 
 Finally there are some plotting configurations:
 
@@ -660,8 +687,8 @@ Finally there are some plotting configurations:
   % chance of turnover
 * `turnover_index_1`: the top depth used in the calculation of whether the lake 
   is mixed
-* `turnover_index_2`: the bottom depth used in the calculation of whether the lake 
-  is mixed 
+* `turnover_index_2`: the bottom depth used in the calculation of whether the 
+  lake is mixed 
   
 ### Creating and modifying a lake-specific Rscripts directory
 
@@ -728,8 +755,8 @@ are to the files used at fcre.
           * timestamp: date-time class
           * depth: meters
           * variable: measurement variable
-          * method: user defined string defining the type of measurement. Matches
-        methods in `configure_FLARE.R` (i.e., `temp_methods`)
+          * method: user defined string defining the type of measurement. 
+            Matches methods in `configure_FLARE.R` (i.e., `temp_methods`)
     * `extract_CTD.R`:
       * Inputs:
         * `fname`
@@ -798,7 +825,8 @@ A guide to the variables in `configure_flare.R`
 ### Weather forcing options
 * `use_future_met`
   * `TRUE`: use NOAA forecast for "Future"
-  * `FALSE` = use observed weather for "Future"; only works if "forecasting" past dates
+  * `FALSE` = use observed weather for "Future"; only works if "forecasting" 
+    past dates
 * `DOWNSCALE_MET`: apply spatial and temporal downscaling
   * `TRUE`: downscale
   * `FALSE`: don't downscale
@@ -871,14 +899,15 @@ A guide to the variables in `configure_flare.R`
 ### Parameter calibration information
 
 * `par_names`: vector of GLM names of parameter values estimated
-* `par_names_save`: vector of names of parameter values estimated  that are desired in 
-output and plots
-* `par_nml`: vector of nml file names that contains the parameter that is being estimated
+* `par_names_save`: vector of names of parameter values estimated  that are 
+   desired in output and plots
+* `par_nml`: vector of nml file names that contains the parameter that is being 
+   estimated
 * `par_init_mean`: vector of initial mean value for parameters
-* `par_init_lowerbound`: vector of lower bound for the initial uniform distribution of 
-  the parameters
-* `par_init_upperbound`: vector of upper bound for the initial uniform distribution of 
-  the parameters
+* `par_init_lowerbound`: vector of lower bound for the initial uniform 
+   distribution of the parameters
+* `par_init_upperbound`: vector of upper bound for the initial uniform 
+   distribution of the parameters
 * `par_lowerbound`: vector of lower bounds that a parameter can have
 * `par_upperbound`: vector of upper bounds that a parameter can have
 * `par_init_qt`: Not used
@@ -888,8 +917,8 @@ output and plots
 
 * `realtime_insitu_location`: full path to the directory with the non-QAQCed 
   in situ data (i.e., thermistor chain)
-* `realtime_met_station_location`: full path to the directory with the non-QAQCed 
-  met station data
+* `realtime_met_station_location`: full path to the directory with the 
+  non-QAQCed met station data
 * `manual_data_location`: full path to the directory with the QAQCed 
   datasets
 * `realtime_inflow_data_location`: full path to the directory with the 
@@ -900,9 +929,9 @@ output and plots
 * `insitu_obs_fname`: vector of two full paths
   * 1: path of the realtime file (required)
   * 2: path of respository (QAQCed) file (if not used, must have `NA`)
-* `variable_obsevation_depths`: Use the depth measurement from the exo sonde (on a buoy; 
-constant depth from surface) to convert the depths of a fixed thermistor chain to distance
-from surface
+* `variable_obsevation_depths`: Use the depth measurement from the exo sonde (on
+   a buoy; constant depth from surface) to convert the depths of a fixed 
+   thermistor chain to distance from surface
   * `TRUE`: convert
   * `FALSE`: don't convert
 * `ctd_2_exo_chla`: slope and intercept of linear regression that converts chla
@@ -935,22 +964,23 @@ from surface
    * current values for FCR: `grap_sample`
 * `srp_methods`: these are the names of the different measurement methods as 
   defined in the `extract_nutrients.R`
-* `time_threshold_seconds_temp`: this is how close a measurement needs to be to the 
-forecast time (`start_time_local`) to be used in the analysis, in seconds.
-* `time_threshold_seconds_oxygen`: this is how close a measurement needs to be to the 
-forecast time (`start_time_local`) to be used in the analysis, in seconds.
-* `time_threshold_seconds_chla`: this is how close a measurement needs to be to the 
-forecast time (`start_time_local`) to be used in the analysis, in seconds.
-* `time_threshold_seconds_fdom`: this is how close a measurement needs to be to the 
-forecast time (`start_time_local`) to be used in the analysis, in seconds.
-* `time_threshold_seconds_nh4`: this is how close a measurement needs to be to the 
-forecast time (`start_time_local`) to be used in the analysis, in seconds.
-* `time_threshold_seconds_no3`: this is how close a measurement needs to be to the 
-forecast time (`start_time_local`) to be used in the analysis, in seconds.
-* `time_threshold_seconds_srp`: this is how close a measurement needs to be to the 
-forecast time (`start_time_local`) to be used in the analysis, in seconds.
-* `distance_threshold_meter`: this is the distances in meters that an observation
-  has to be within to be matched to a value in `modeled_depths`.
+* `time_threshold_seconds_temp`: this is how close a measurement needs to be to 
+  the forecast time (`start_time_local`) to be used in the analysis, in seconds.
+* `time_threshold_seconds_oxygen`: this is how close a measurement needs to be 
+  to the forecast time (`start_time_local`) to be used in the analysis, in 
+  seconds.
+* `time_threshold_seconds_chla`: this is how close a measurement needs to be to 
+  the forecast time (`start_time_local`) to be used in the analysis, in seconds.
+* `time_threshold_seconds_fdom`: this is how close a measurement needs to be to 
+  the forecast time (`start_time_local`) to be used in the analysis, in seconds.
+* `time_threshold_seconds_nh4`: this is how close a measurement needs to be to 
+  the forecast time (`start_time_local`) to be used in the analysis, in seconds.
+* `time_threshold_seconds_no3`: this is how close a measurement needs to be to 
+  the forecast time (`start_time_local`) to be used in the analysis, in seconds.
+* `time_threshold_seconds_srp`: this is how close a measurement needs to be to 
+  the forecast time (`start_time_local`) to be used in the analysis, in seconds.
+* `distance_threshold_meter`: this is the distances in meters that an 
+  observation has to be within to be matched to a value in `modeled_depths`.
 
 
 ### Initial Conditions (GLM)
@@ -967,9 +997,10 @@ forecast time (`start_time_local`) to be used in the analysis, in seconds.
 
 * `tchla_components_vars`: The names of the phytoplankton groups that contribute to
 total chl-a in GLM
-* `wq_names`: GLM names of the water quality variables modeled. Not used if include_wq == FALSE
-* `biomass_to_chla`: Carbon to chlorophyll ratio (mg C/mg chla) for each group in
-`tchla_components_vars`.
+* `wq_names`: GLM names of the water quality variables modeled. Not used if 
+   `include_wq == FALSE`
+* `biomass_to_chla`: Carbon to chlorophyll ratio (mg C/mg chla) for each group 
+  in `tchla_components_vars`.
   * 12 g/ mole of C vs. X g/ mole of chla
 * `init_donc`: Initial ratio of DON:DOC
 * `init_dopc`: Initial ratio of DOP:DOC
@@ -1053,13 +1084,15 @@ the magnitude of the measurement. A vector of with the same length as `wq_names`
 
 ### Management specific variables
 
-* `simulate_SSS`: include SSS (bottom-water oxygenation) in simulations with observed drivers (i.e., data
-  assimilation simulations)
+* `simulate_SSS`: include SSS (bottom-water oxygenation) in simulations with 
+  observed drivers (i.e., data assimilation simulations)
   * `TRUE`: include
   * `FALSE`: don't include
 * `forecast_no_SSS`: Include SSS in forecast
   * `TRUE`: include
   * `FALSE`: don't include
+* `use_specified_sss`: Use sss inflow and oxygen from file in forecast.  If 
+  `FALSE` then provide `forecast_SSS_flow` and `forecast_SSS_Oxy`.
 * `forecast_SSS_flow`: Flow rate of SSS in forecast (m3/day)
 * `forecast_SSS_Oxy`: Oxygen concentration of SSS in forecast (mmol/m3)
 * `sss_fname`: full path to the file that has the SSS Flow and oxygen data
@@ -1068,9 +1101,9 @@ the magnitude of the measurement. A vector of with the same length as `wq_names`
 
 ### Plotting related options
 
-* `focal_depths_manager`:  A vector of depths that are included in the plot with the
-  % change of turnover. 
+* `focal_depths_manager`:  A vector of depths that are included in the plot with
+  the % change of turnover. 
 * `turnover_index_1`: the top depth used in the calculation of whether the lake 
   is mixed
-* `turnover_index_2`: the bottom depth used in the calculation of whether the lake 
-  is mixed 
+* `turnover_index_2`: the bottom depth used in the calculation of whether the 
+  lake is mixed 

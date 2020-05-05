@@ -379,6 +379,7 @@ summary {
 <li><a href="#set-up">1: Set up</a><ul>
 <li><a href="#a-pre-packaged-code-and-data">1a: Pre-packaged code and data</a></li>
 <li><a href="#b-generating-directories-downloading-code-and-downloading-data-manually">1b: Generating directories, downloading code, and downloading data manually</a></li>
+<li><a href="#c-using-a-docker-container">1c: Using a Docker Container</a></li>
 </ul></li>
 <li><a href="#configure-simulation-glm">2: Configure simulation (GLM)</a><ul>
 <li><a href="#initiate_forecast_example.r">initiate_forecast_example.R</a></li>
@@ -471,11 +472,12 @@ summary {
 <ul>
 <li>Step 1a is the quickest way to get FLARE set-up but won’t have the most recent data or code.</li>
 <li>Step 1b is required if you want to automatically pull new data from GitHub</li>
+<li>Step 1c is uses a docker container that already has the libraries that FLARE requires installed. Similar to step 1a, the Docker container won’t have the most recent data or code.</li>
 </ul>
 <div id="a-pre-packaged-code-and-data" class="section level3">
 <h3>1a: Pre-packaged code and data</h3>
 <p>Download and unzip the file here:</p>
-<p><a href="https://www.dropbox.com/s/eijknbfzt2ld86g/flare_users_guide_files.zip?dl=0" class="uri">https://www.dropbox.com/s/eijknbfzt2ld86g/flare_users_guide_files.zip?dl=0</a></p>
+<p><a href="https://www.dropbox.com/s/enl9srn5rx7ecxp/flare_users_guide_files.zip?dl=0" class="uri">https://www.dropbox.com/s/enl9srn5rx7ecxp/flare_users_guide_files.zip?dl=0</a></p>
 </div>
 <div id="b-generating-directories-downloading-code-and-downloading-data-manually" class="section level3">
 <h3>1b: Generating directories, downloading code, and downloading data manually</h3>
@@ -529,7 +531,7 @@ The non-sensor data include
 </ul>
 <p><strong>Create directory for running FLARE</strong></p>
 <ul>
-<li><p>Create a directory in your working directory (<code>flare_training</code>, not the SCC_data directory) using <code>mkdir</code>. For example:</p>
+<li><p>Create a directory in your working directory (<code>flare_training</code>, not the <code>SCC_data</code> directory) using <code>mkdir</code>. For example:</p>
 <p><code>mkdir /Users/quinn/Dropbox/Research/SSC_forecasting/flare_training/flare_simulation</code></p></li>
 </ul>
 <p>Copy the following files from <code>FLARE/example_configuration_files</code> to <code>flare_simulation</code></p>
@@ -537,6 +539,24 @@ The non-sensor data include
 <li><code>initiate_forecast_example.R</code></li>
 <li><code>glm3_woAED.nml</code></li>
 <li><code>configure_FLARE.R</code></li>
+</ul>
+</div>
+<div id="c-using-a-docker-container" class="section level3">
+<h3>1c: Using a Docker Container</h3>
+<p>Below are the steps for running FLARE as a Docker Container. If you already have Docker Desktop on your computer you can skip the first step.</p>
+<ul>
+<li>Download and install Docker Desktop from Docker.com
+<ul>
+<li><a href="https://www.docker.com/products/docker-desktop" class="uri">https://www.docker.com/products/docker-desktop</a></li>
+</ul></li>
+<li>Open a Terminal window in Mac or Command Prompt window in Windows</li>
+<li>Run this command in Terminal or Command Prompt (this will take a while to download) <code>docker run --name flare-dev -e PASSWORD=password -p 8787:8787 flareforecast/flare_scc_tutorial2</code></li>
+<li>Open a webbrower and enter the following address: <a href="http://localhost:8787" class="uri">http://localhost:8787</a></li>
+<li>Enter the following user name and password
+<ul>
+<li>user: rstudio</li>
+<li>password: password</li>
+</ul></li>
 </ul>
 </div>
 </div>
@@ -558,10 +578,10 @@ The non-sensor data include
 <li><code>execute_location</code>: This is the same as <code>forecast_location</code> unless you are executing the simulation in a different directory. I use this to execute the code on a RAM disk to save read-writes to my hard disk. You don’t need to do this in the tutorial</li>
 <li><code>restart_file</code>: This is the full path to the file that you want to use as initial conditions for the simulation. You will set this to <code>NA</code> if the simulation is not a continuation of a previous simulation.</li>
 <li><code>sim_name</code>: a string with the name of your simulation. This will appear in your output file names</li>
-<li><code>forecast_days</code>: This is your forecast horizon. The max is <code>16</code> days. Set to <code>0</code> if only doing data assimilation with observed drivers.</li>
+<li><code>forecast_days</code>: This is your forecast horizon. The max is <code>16</code> days. Set to <code>0</code>if only doing data assimilation with observed drivers.</li>
 <li><code>spin_up_days</code>: set to zero. Don’t worry about this one.</li>
 <li><code>start_day_local</code>: The date that your simulation starts. Uses the YYYY-MM-DD format (e.g., “2019-09-20”). <code>2018-07-12</code> is the first day in the SCC project (when the catwalk temperature data comes online)</li>
-<li><code>start_time_local</code>: The time of day you want to start a forecast. Because GLM is a daily timestep model, the simulation will start at this time. It uses <code>mm:hh:ss</code> format and must only be a whole hour. It is in the <strong>local time zone</strong> of the lake in standard time. It can be any hour if only doing data assimilation with observed drivers (forecast_days = 0). If forecasting (forecast_days &gt; 0) it is required to match up with the availability of a NOAA forecast. NOAA forecasts are available at
+<li><code>start_time_local</code>: The time of day you want to start a forecast. Because GLM is a daily timestep model, the simulation will start at this time. It uses <code>mm:hh:ss</code> format and must only be a whole hour. It is in the <strong>local time zone</strong> of the lake in standard time. It can be any hour if only doing data assimilation with observed drivers (forecast_days = 0). If forecasting (forecast_days &gt; 0) it is required to match up with the availability of a NOAA forecast. NOAA forecasts are available at the following times GMT so you must select a local time that matches one of these times (i.e., 07:00:00 at FCR is the 12:00:00 GMT NOAA forecast).
 <ul>
 <li>00:00:00 GMT</li>
 <li>06:00:00 GMT</li>
@@ -969,7 +989,7 @@ par_units &lt;&lt;- c()</code></pre>
 </div>
 <div id="changing-the-ensemble-size" class="section level3">
 <h3>Changing the ensemble size</h3>
-<p>The variable <code>ensemble_size</code> allows you to adjust the size of the ensemble. You can use any value if you are using data assimilation with observed drivers. If you are forecasting then <code>ensemble_size</code> must be a multiple of <code>21*n_ds_members</code>, where 21 is the number of NOAA GEF ensemble members.</p>
+<p>The variable <code>ensemble_size</code> allows you to adjust the size of the ensemble. You can use any value if you are using data assimilation with observed drivers. If you are forecasting then <code>ensemble_size</code> must be a multiple of <code>21 * n_ds_members</code>, where 21 is the number of NOAA GEF ensemble members.</p>
 </div>
 <div id="changing-the-number-of-depths-simulated" class="section level3">
 <h3>Changing the number of depths simulated</h3>
@@ -1012,7 +1032,7 @@ par_units &lt;&lt;- c()</code></pre>
 <ul>
 <li><code>ctd_fname</code>: a value of NA is needed if you do not have or do not want to use CTD measurements</li>
 </ul>
-<p>Importantly, <code>insitu_obs_fname</code>, <code>met_obs_fname</code>, and <code>inflow_file1</code> <strong>require</strong> two file names. The first is the realtime file that has not had QAQC applied (i.e, just downloaded from the sensor). The second is file that has QAQC applied (i.e, a file from a data repository). If any time periods overlap between the two files, FLARE will default the second (QAQCed) file. Historical data assimilation applications will use the QAQCed file. If you are missing one of the two file, the vector should have an <code>NA</code> in its place.</p>
+<p>Importantly, <code>insitu_obs_fname</code>, <code>met_obs_fname</code>, and <code>inflow_file1</code> <strong>require</strong> two file names. The first is the realtime file that has not had QAQC applied (i.e,just downloaded from the sensor). The second is file that has QAQC applied (i.e, a file from a data repository). If any time periods overlap between the two files, FLARE will default the second (QAQCed) file. Historical data assimilation applications will use the QAQCed file. If you are missing one of the two file, the vector should have an <code>NA</code> in its place.</p>
 <p>You will need to specify how to process data files:</p>
 <ul>
 <li><code>temp_methods</code>: these are the names of the different measurement methods used to aquire data (e.g. CTD profile, in situ thermistor), as defined in the temp_oxy_chla_qaqc.R and, potentially, extract_CTD.R, scripts that you have modified for the new lake.
@@ -1405,7 +1425,7 @@ par_units &lt;&lt;- c()</code></pre>
 <h3>Water quality variable information</h3>
 <ul>
 <li><code>tchla_components_vars</code>: The names of the phytoplankton groups that contribute to total chl-a in GLM</li>
-<li><code>wq_names</code>: GLM names of the water quality variables modeled. Not used if include_wq == FALSE</li>
+<li><code>wq_names</code>: GLM names of the water quality variables modeled. Not used if <code>include_wq == FALSE</code></li>
 <li><code>biomass_to_chla</code>: Carbon to chlorophyll ratio (mg C/mg chla) for each group in <code>tchla_components_vars</code>.
 <ul>
 <li>12 g/ mole of C vs. X g/ mole of chla</li>
@@ -1504,6 +1524,7 @@ par_units &lt;&lt;- c()</code></pre>
 <li><code>TRUE</code>: include</li>
 <li><code>FALSE</code>: don’t include</li>
 </ul></li>
+<li><code>use_specified_sss</code>: Use sss inflow and oxygen from file in forecast. If <code>FALSE</code> then provide <code>forecast_SSS_flow</code> and <code>forecast_SSS_Oxy</code>.</li>
 <li><code>forecast_SSS_flow</code>: Flow rate of SSS in forecast (m3/day)</li>
 <li><code>forecast_SSS_Oxy</code>: Oxygen concentration of SSS in forecast (mmol/m3)</li>
 <li><code>sss_fname</code>: full path to the file that has the SSS Flow and oxygen data</li>
